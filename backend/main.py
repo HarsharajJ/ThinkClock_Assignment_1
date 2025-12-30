@@ -1,7 +1,9 @@
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 from dotenv import load_dotenv
 
 from routers import eis, cells
@@ -9,6 +11,30 @@ from database import init_db, close_db
 
 # Load environment variables
 load_dotenv()
+
+
+class CORSHandler(BaseHTTPMiddleware):
+    """Custom CORS middleware to handle preflight requests properly."""
+    
+    async def dispatch(self, request: Request, call_next):
+        # Handle preflight OPTIONS requests
+        if request.method == "OPTIONS":
+            response = JSONResponse(content={"status": "ok"}, status_code=200)
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+            response.headers["Access-Control-Allow-Headers"] = "*"
+            response.headers["Access-Control-Max-Age"] = "86400"
+            return response
+        
+        # Process other requests normally
+        response = await call_next(request)
+        
+        # Add CORS headers to all responses
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        
+        return response
 
 
 @asynccontextmanager
@@ -40,13 +66,13 @@ app = FastAPI(
     description="API for battery cell EIS data analysis with database persistence",
     version="2.0.0",
     lifespan=lifespan,
-    # Disable docs in production for security (optional)
-    docs_url=None if IS_PRODUCTION else "/docs",
-    redoc_url=None if IS_PRODUCTION else "/redoc",
+    # Keep docs enabled for debugging
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
-# CORS configuration - environment-based
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "").split(",") if os.getenv("CORS_ORIGINS") else []
+# Add custom CORS handler FIRST (before other middleware)
+app.add_middleware(CORSHandler)
 
 # Default allowed origins
 DEFAULT_ORIGINS = [
