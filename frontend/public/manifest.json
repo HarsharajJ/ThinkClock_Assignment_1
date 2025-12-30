@@ -1,0 +1,19 @@
+{
+  "name": "Battery Labs - Cell Characterization Dashboard",
+  "short_name": "Battery Labs",
+  "description": "Professional battery cell characterization system with EIS analysis and state-of-health monitoring.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "orientation": "any"
+}
