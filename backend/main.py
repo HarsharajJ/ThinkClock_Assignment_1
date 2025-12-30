@@ -55,25 +55,17 @@ DEFAULT_ORIGINS = [
     "http://localhost:3001",
 ]
 
-# In production, allow Vercel domains and specified origins
-# For simplicity, we'll allow all origins if no specific ones are set
-if IS_PRODUCTION:
-    if CORS_ORIGINS and CORS_ORIGINS[0]:
-        allowed_origins = CORS_ORIGINS
-    else:
-        # Allow all origins in production if CORS_ORIGINS not set
-        allowed_origins = ["*"]
-else:
-    allowed_origins = DEFAULT_ORIGINS
+# In production, allow all origins for simplicity
+allowed_origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_credentials=False if allowed_origins == ["*"] else True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["Content-Disposition"],
-    max_age=600,  # Cache preflight requests for 10 minutes
+    expose_headers=["*"],
+    max_age=86400,  # Cache preflight requests for 24 hours
 )
 
 # Include routers

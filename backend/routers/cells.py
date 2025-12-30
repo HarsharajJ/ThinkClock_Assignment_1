@@ -1,7 +1,7 @@
 """
 API endpoints for battery cell CRUD operations.
 """
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from typing import Optional
@@ -17,6 +17,21 @@ from services.cloudinary_service import cloudinary_service
 from services.impedance_service import impedance_service
 
 router = APIRouter(prefix="/api/cells", tags=["Cells"])
+
+
+# Explicit OPTIONS handler for CORS preflight
+@router.options("")
+@router.options("/")
+@router.options("/{path:path}")
+async def options_handler(path: str = ""):
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
 
 
 def cell_to_response(cell) -> dict:
