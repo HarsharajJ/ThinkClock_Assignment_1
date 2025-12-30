@@ -1,95 +1,167 @@
 'use client';
 
 import React from 'react';
-import { Activity, Info } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Activity } from 'lucide-react';
+
+// Resistor component with proper zigzag symbol
+const Resistor = ({ x, y, label, sublabel }: { x: number; y: number; label: string; sublabel: string }) => (
+    <g transform={`translate(${x}, ${y})`}>
+        <path
+            d="M0 0 L5 0 L8 -8 L14 8 L20 -8 L26 8 L32 -8 L38 8 L41 0 L46 0"
+            fill="none"
+            stroke="#1f2937"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+        <text x="23" y="-16" textAnchor="middle" fill="#1f2937" fontSize="11" fontWeight="600" fontFamily="system-ui">{label}</text>
+        <text x="23" y="-28" textAnchor="middle" fill="#6b7280" fontSize="9" fontFamily="system-ui">({sublabel})</text>
+    </g>
+);
+
+// CPE (Constant Phase Element) - shown as tilted capacitor symbol
+const CPE = ({ x, y, label, sublabel }: { x: number; y: number; label: string; sublabel: string }) => (
+    <g transform={`translate(${x}, ${y})`}>
+        {/* CPE plates - slightly tilted to indicate non-ideal behavior */}
+        <line x1="18" y1="-12" x2="18" y2="12" stroke="#1f2937" strokeWidth="2.5" strokeLinecap="round" />
+        <line x1="28" y1="-10" x2="28" y2="10" stroke="#1f2937" strokeWidth="2.5" strokeLinecap="round" />
+        {/* Connection wires */}
+        <line x1="0" y1="0" x2="18" y2="0" stroke="#1f2937" strokeWidth="2" />
+        <line x1="28" y1="0" x2="46" y2="0" stroke="#1f2937" strokeWidth="2" />
+        {/* Labels */}
+        <text x="23" y="28" textAnchor="middle" fill="#1f2937" fontSize="10" fontWeight="600" fontFamily="system-ui">{label}</text>
+        <text x="23" y="40" textAnchor="middle" fill="#6b7280" fontSize="9" fontFamily="system-ui">({sublabel})</text>
+    </g>
+);
+
+// Warburg element - zigzag with a line (semi-infinite diffusion)
+const Warburg = ({ x, y, label, sublabel }: { x: number; y: number; label: string; sublabel: string }) => (
+    <g transform={`translate(${x}, ${y})`}>
+        {/* Warburg symbol: zigzag followed by a straight line */}
+        <path
+            d="M0 0 L5 0 L8 -6 L14 6 L20 -6 L26 6 L29 0 L46 0"
+            fill="none"
+            stroke="#1f2937"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+        {/* Semi-infinite indicator line */}
+        <line x1="46" y1="-8" x2="46" y2="8" stroke="#1f2937" strokeWidth="2" strokeLinecap="round" />
+        <text x="23" y="-16" textAnchor="middle" fill="#1f2937" fontSize="10" fontWeight="600" fontFamily="system-ui">{label}</text>
+        <text x="23" y="-28" textAnchor="middle" fill="#6b7280" fontSize="9" fontFamily="system-ui">({sublabel})</text>
+    </g>
+);
 
 export default function ECMDiagram() {
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
+            {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-neutral-400" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Schematic Topology</span>
-                </div>
-                <div className="flex items-center gap-1.5 rounded-full bg-neutral-50 px-2.5 py-1">
-                    <div className="h-1.5 w-1.5 rounded-full bg-black animate-pulse" />
-                    <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-400">Active Bridge</span>
+                    <Activity className="h-4 w-4 text-gray-500" />
+                    <span className="text-xs font-semibold text-gray-600">Equivalent Circuit Model</span>
                 </div>
             </div>
 
-            <div className="relative overflow-hidden rounded-xl border border-neutral-100 bg-white p-4">
-                <svg viewBox="0 0 600 150" className="w-full h-auto mix-blend-multiply opacity-80 transition-opacity hover:opacity-100">
-                    {/* Wire from start */}
-                    <line x1="20" y1="75" x2="60" y2="75" stroke="#000000" strokeWidth="1.5" strokeDasharray="4 2" />
+            {/* Circuit notation */}
+            <div className="text-xs text-gray-500 font-mono bg-gray-50 px-3 py-1.5 rounded-md inline-block">
+                R0 - p(R1,CPE1) - p(R2,CPE2) - W1
+            </div>
 
-                    {/* Rb (R0) - Electrolyte resistance */}
-                    <rect x="60" y="60" width="50" height="30" fill="none" stroke="#000000" strokeWidth="2" rx="1" />
-                    <text x="85" y="80" textAnchor="middle" fill="#000000" fontSize="10" fontWeight="900" fontFamily="Inter, sans-serif">RB</text>
+            {/* Circuit Diagram */}
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6">
+                <svg viewBox="0 0 720 180" className="w-full h-auto">
+                    {/* Main horizontal wire - input */}
+                    <line x1="20" y1="90" x2="50" y2="90" stroke="#1f2937" strokeWidth="2" />
 
-                    {/* Wire to first parallel */}
-                    <line x1="110" y1="75" x2="150" y2="75" stroke="#000000" strokeWidth="1.5" />
+                    {/* R0 (Rb) - Bulk/Electrolyte Resistance */}
+                    <Resistor x={50} y={90} label="Rb" sublabel="R0" />
 
-                    {/* First parallel element (R_SEI || CPE_SEI) */}
-                    <line x1="150" y1="40" x2="150" y2="110" stroke="#000000" strokeWidth="1.5" />
-                    <line x1="150" y1="40" x2="170" y2="40" stroke="#000000" strokeWidth="1.5" />
-                    <rect x="170" y="25" width="50" height="30" fill="none" stroke="#000000" strokeWidth="2" rx="1" />
-                    <text x="195" y="45" textAnchor="middle" fill="#000000" fontSize="8" fontWeight="bold" fontFamily="Inter, sans-serif">R_SEI</text>
-                    <line x1="220" y1="40" x2="240" y2="40" stroke="#000000" strokeWidth="1.5" />
-                    <line x1="240" y1="40" x2="240" y2="110" stroke="#000000" strokeWidth="1.5" />
+                    {/* Wire from R0 to first parallel */}
+                    <line x1="96" y1="90" x2="140" y2="90" stroke="#1f2937" strokeWidth="2" />
 
-                    <line x1="150" y1="110" x2="170" y2="110" stroke="#000000" strokeWidth="1.5" />
-                    <line x1="185" y1="95" x2="185" y2="125" stroke="#000000" strokeWidth="2" />
-                    <line x1="205" y1="100" x2="205" y2="120" stroke="#000000" strokeWidth="2" />
-                    <text x="195" y="138" textAnchor="middle" fill="#a3a3a3" fontSize="7" fontWeight="bold" fontFamily="Inter, sans-serif">CPE_SEI</text>
-                    <line x1="220" y1="110" x2="240" y2="110" stroke="#000000" strokeWidth="1.5" />
+                    {/* First parallel junction - left vertical */}
+                    <line x1="140" y1="45" x2="140" y2="135" stroke="#1f2937" strokeWidth="2" />
 
-                    {/* Wire to second parallel */}
-                    <line x1="240" y1="75" x2="280" y2="75" stroke="#000000" strokeWidth="1.5" />
+                    {/* R_SEI (R1) - top branch */}
+                    <line x1="140" y1="45" x2="160" y2="45" stroke="#1f2937" strokeWidth="2" />
+                    <Resistor x={160} y={45} label="R_SEI" sublabel="R1" />
+                    <line x1="206" y1="45" x2="240" y2="45" stroke="#1f2937" strokeWidth="2" />
 
-                    {/* Second parallel element (R_CT || CPE_DL) */}
-                    <line x1="280" y1="40" x2="280" y2="110" stroke="#000000" strokeWidth="1.5" />
-                    <line x1="280" y1="40" x2="300" y2="40" stroke="#000000" strokeWidth="1.5" />
-                    <rect x="300" y="25" width="50" height="30" fill="none" stroke="#000000" strokeWidth="2" rx="1" />
-                    <text x="325" y="45" textAnchor="middle" fill="#000000" fontSize="8" fontWeight="bold" fontFamily="Inter, sans-serif">R_CT</text>
-                    <line x1="350" y1="40" x2="370" y2="40" stroke="#000000" strokeWidth="1.5" />
-                    <line x1="370" y1="40" x2="370" y2="110" stroke="#000000" strokeWidth="1.5" />
+                    {/* CPE_SEI (CPE1) - bottom branch */}
+                    <line x1="140" y1="135" x2="160" y2="135" stroke="#1f2937" strokeWidth="2" />
+                    <CPE x={160} y={135} label="CPE_SEI" sublabel="CPE1" />
+                    <line x1="206" y1="135" x2="240" y2="135" stroke="#1f2937" strokeWidth="2" />
 
-                    <line x1="280" y1="110" x2="300" y2="110" stroke="#000000" strokeWidth="1.5" />
-                    <line x1="315" y1="95" x2="315" y2="125" stroke="#000000" strokeWidth="2" />
-                    <line x1="335" y1="100" x2="335" y2="120" stroke="#000000" strokeWidth="2" />
-                    <text x="325" y="138" textAnchor="middle" fill="#a3a3a3" fontSize="7" fontWeight="bold" fontFamily="Inter, sans-serif">CPE_DL</text>
-                    <line x1="350" y1="110" x2="370" y2="110" stroke="#000000" strokeWidth="1.5" />
+                    {/* First parallel junction - right vertical */}
+                    <line x1="240" y1="45" x2="240" y2="135" stroke="#1f2937" strokeWidth="2" />
+
+                    {/* Wire between parallel sections */}
+                    <line x1="240" y1="90" x2="300" y2="90" stroke="#1f2937" strokeWidth="2" />
+
+                    {/* Second parallel junction - left vertical */}
+                    <line x1="300" y1="45" x2="300" y2="135" stroke="#1f2937" strokeWidth="2" />
+
+                    {/* R_CT (R2) - top branch */}
+                    <line x1="300" y1="45" x2="320" y2="45" stroke="#1f2937" strokeWidth="2" />
+                    <Resistor x={320} y={45} label="R_CT" sublabel="R2" />
+                    <line x1="366" y1="45" x2="400" y2="45" stroke="#1f2937" strokeWidth="2" />
+
+                    {/* CPE_DL (CPE2) - bottom branch */}
+                    <line x1="300" y1="135" x2="320" y2="135" stroke="#1f2937" strokeWidth="2" />
+                    <CPE x={320} y={135} label="CPE_DL" sublabel="CPE2" />
+                    <line x1="366" y1="135" x2="400" y2="135" stroke="#1f2937" strokeWidth="2" />
+
+                    {/* Second parallel junction - right vertical */}
+                    <line x1="400" y1="45" x2="400" y2="135" stroke="#1f2937" strokeWidth="2" />
 
                     {/* Wire to Warburg */}
-                    <line x1="370" y1="75" x2="410" y2="75" stroke="#000000" strokeWidth="1.5" />
+                    <line x1="400" y1="90" x2="450" y2="90" stroke="#1f2937" strokeWidth="2" />
 
-                    {/* Warburg element */}
-                    <g transform="translate(410, 60)">
-                        <path d="M0 15 L8 3 L16 27 L24 3 L32 27 L40 3 L48 15" fill="none" stroke="#000000" strokeWidth="1.5" />
-                        <text x="24" y="42" textAnchor="middle" fill="#a3a3a3" fontSize="8" fontWeight="bold" fontFamily="Inter, sans-serif">WARBURG</text>
-                    </g>
+                    {/* Warburg (W1) - Diffusion Element */}
+                    <Warburg x={450} y={90} label="W_Warburg" sublabel="W1" />
 
-                    {/* Wire to end */}
-                    <line x1="458" y1="75" x2="510" y2="75" stroke="#000000" strokeWidth="1.5" strokeDasharray="4 2" />
+                    {/* Wire to output */}
+                    <line x1="496" y1="90" x2="540" y2="90" stroke="#1f2937" strokeWidth="2" />
 
                     {/* Terminal dots */}
-                    <circle cx="20" cy="75" r="3" fill="#000000" />
-                    <circle cx="510" cy="75" r="3" fill="#000000" />
+                    <circle cx="20" cy="90" r="4" fill="#1f2937" />
+                    <circle cx="540" cy="90" r="4" fill="#1f2937" />
+
+                    {/* Terminal labels */}
+                    <text x="20" y="115" textAnchor="middle" fill="#6b7280" fontSize="10" fontFamily="system-ui">+</text>
+                    <text x="540" y="115" textAnchor="middle" fill="#6b7280" fontSize="10" fontFamily="system-ui">−</text>
                 </svg>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-2 rounded-lg border border-neutral-50 bg-neutral-50/50 p-2 text-[8px] font-bold uppercase tracking-widest text-neutral-400">
-                    <div className="h-1.5 w-1.5 bg-black" />
-                    <span>Resistive Nodes</span>
+            {/* Legend */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                    <svg width="24" height="12" viewBox="0 0 24 12">
+                        <path d="M0 6 L3 6 L5 2 L9 10 L13 2 L17 10 L19 6 L24 6" fill="none" stroke="#1f2937" strokeWidth="1.5" />
+                    </svg>
+                    <span className="text-gray-600 font-medium">Resistor</span>
                 </div>
-                <div className="flex items-center gap-2 rounded-lg border border-neutral-50 bg-neutral-50/50 p-2 text-[8px] font-bold uppercase tracking-widest text-neutral-400">
-                    <div className="flex h-1.5 w-1.5 gap-[1px]">
-                        <div className="h-full w-[2px] bg-neutral-300" />
-                        <div className="h-full w-[2px] bg-neutral-300" />
-                    </div>
-                    <span>Reactive Elements</span>
+                <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                    <svg width="24" height="12" viewBox="0 0 24 16">
+                        <line x1="0" y1="8" x2="8" y2="8" stroke="#1f2937" strokeWidth="1.5" />
+                        <line x1="8" y1="2" x2="8" y2="14" stroke="#1f2937" strokeWidth="2" />
+                        <line x1="14" y1="3" x2="14" y2="13" stroke="#1f2937" strokeWidth="2" />
+                        <line x1="14" y1="8" x2="24" y2="8" stroke="#1f2937" strokeWidth="1.5" />
+                    </svg>
+                    <span className="text-gray-600 font-medium">CPE</span>
+                </div>
+                <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                    <svg width="24" height="12" viewBox="0 0 28 12">
+                        <path d="M0 6 L3 6 L5 2 L9 10 L13 2 L15 6 L24 6" fill="none" stroke="#1f2937" strokeWidth="1.5" />
+                        <line x1="24" y1="2" x2="24" y2="10" stroke="#1f2937" strokeWidth="1.5" />
+                    </svg>
+                    <span className="text-gray-600 font-medium">Warburg</span>
+                </div>
+                <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                    <span className="text-gray-500 font-mono text-[10px]">p(A,B)</span>
+                    <span className="text-gray-600 font-medium">Parallel</span>
                 </div>
             </div>
         </div>
