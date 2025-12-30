@@ -48,21 +48,29 @@ app = FastAPI(
 # CORS configuration - environment-based
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "").split(",") if os.getenv("CORS_ORIGINS") else []
 
-# Default allowed origins for development
+# Default allowed origins
 DEFAULT_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:3001",
 ]
 
-# Combine origins (production uses env var, development uses defaults)
-allowed_origins = CORS_ORIGINS if IS_PRODUCTION and CORS_ORIGINS else DEFAULT_ORIGINS
+# In production, allow Vercel domains and specified origins
+# For simplicity, we'll allow all origins if no specific ones are set
+if IS_PRODUCTION:
+    if CORS_ORIGINS and CORS_ORIGINS[0]:
+        allowed_origins = CORS_ORIGINS
+    else:
+        # Allow all origins in production if CORS_ORIGINS not set
+        allowed_origins = ["*"]
+else:
+    allowed_origins = DEFAULT_ORIGINS
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_credentials=False if allowed_origins == ["*"] else True,
+    allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["Content-Disposition"],
     max_age=600,  # Cache preflight requests for 10 minutes
