@@ -2,6 +2,11 @@
 const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 export const API_BASE_URL = rawApiUrl.endsWith('/') ? rawApiUrl.slice(0, -1) : rawApiUrl;
 
+// Log API URL for debugging (only in browser)
+if (typeof window !== 'undefined') {
+  console.log('[API] Base URL:', API_BASE_URL);
+}
+
 // ============== EIS Types ==============
 
 export interface BodePlotData {
@@ -171,14 +176,32 @@ export async function createCell(cellCondition: string = 'Recycled', electricalP
 }
 
 export async function getCells(page: number = 1, pageSize: number = 10): Promise<CellListResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/cells?page=${page}&page_size=${pageSize}`);
+  const url = `${API_BASE_URL}/api/cells?page=${page}&page_size=${pageSize}`;
+  console.log('[API] Fetching cells from:', url);
+  
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || 'Failed to get cells');
+    console.log('[API] Response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[API] Error response:', errorText);
+      throw new Error(errorText || 'Failed to get cells');
+    }
+
+    const data = await response.json();
+    console.log('[API] Cells data:', data);
+    return data;
+  } catch (error) {
+    console.error('[API] Fetch error:', error);
+    throw error;
   }
-
-  return response.json();
 }
 
 export async function getCell(cellId: string): Promise<Cell> {

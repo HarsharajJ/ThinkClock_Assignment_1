@@ -253,14 +253,18 @@ export default function Home() {
   }, [analysis]);
 
   async function loadCellsList(page: number = 1) {
+    console.log('[UI] loadCellsList called with page:', page);
     setIsLoadingCells(true);
     setCellsListError(null);
     try {
+      console.log('[UI] Calling getCells...');
       const result = await getCells(page, pageSize);
+      console.log('[UI] getCells result:', result);
       setCellsList(result.cells || []);
       setTotalCells(result.total || 0);
       setCurrentPage(page);
     } catch (e) {
+      console.error('[UI] getCells error:', e);
       const errorMsg = e instanceof Error ? e.message : "Failed to load cells";
       setCellsListError(errorMsg);
     } finally {
